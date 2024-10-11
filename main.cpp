@@ -25,11 +25,11 @@ int main() {
     const Vec3 cameraPos(0, 0, 0);
 
     Scene scene;
-    scene.addObject(std::make_unique<Sphere>(Vec3(0, 0, -5), 1, rang::fg::red));
-    scene.addObject(std::make_unique<Sphere>(Vec3(2, 0, -6), 0.5, rang::fg::green));
-    scene.addObject(std::make_unique<Sphere>(Vec3(-2, 0, -4), 0.7, rang::fg::blue));
-    scene.addObject(std::make_unique<Sphere>(Vec3(0, -1, -3), 0.3, rang::fg::yellow));
-    scene.addObject(std::make_unique<Sphere>(Vec3(-1, 1, -4), 0.4, rang::fg::cyan));
+    scene.addObject(std::make_unique<Sphere>(Vec3(0, 0, -5), 1, rang::fg::red, Vec3(1, 0, 0)));
+    scene.addObject(std::make_unique<Sphere>(Vec3(2, 0, -6), 0.5, rang::fg::green, Vec3(0, 1, 0)));
+    scene.addObject(std::make_unique<Sphere>(Vec3(-2, 0, -4), 0.7, rang::fg::blue, Vec3(0, 0, 1)));
+    scene.addObject(std::make_unique<Sphere>(Vec3(0, -1, -3), 0.3, rang::fg::yellow, Vec3(1, 1, 0)));
+    scene.addObject(std::make_unique<Sphere>(Vec3(-1, 1, -4), 0.4, rang::fg::cyan, Vec3(0, 1, 1)));
 
     Image image(width, height);
 
