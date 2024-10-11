@@ -7,6 +7,11 @@
 #include <cmath>
 #include <rang.hpp>
 
+struct PixelData {
+    char character;
+    rang::fg color;
+};
+
 class Scene {
     std::vector<std::unique_ptr<Shape>> objects;
     Vec3 lightDir = Vec3(1, 1, 1).normalize();
@@ -32,51 +37,50 @@ public:
             }
         }
 
+        // Check for ground plane intersection
+        double t_ground = -ray.origin.y / ray.direction.y;
+        if (t_ground > 0 && t_ground < closest) {
+            return std::make_pair(nullptr, t_ground);  // nullptr indicates ground plane
+        }
+
         if (hitObject)
             return std::make_pair(hitObject, closest);
-        return std::nullopt;
+
+        // If no intersection, it's the sky
+        return std::make_pair(nullptr, std::numeric_limits<double>::infinity());
     }
 
-    rang::fg shade(const Ray& ray) const {
+    PixelData shade(const Ray& ray) const {
         auto hit = trace(ray);
-        if (!hit) return rang::fg::reset; // Background color
-
         const auto& [object, t] = *hit;
+
+        if (object == nullptr) {
+            if (std::isinf(t)) {
+                // Sky
+                return {'.', rang::fg::blue};
+            } else {
+                // Ground plane
+                Vec3 hitPoint = ray.origin + ray.direction * t;
+                int checkX = static_cast<int>(std::floor(hitPoint.x)) % 2;
+                int checkZ = static_cast<int>(std::floor(hitPoint.z)) % 2;
+                return {(checkX ^ checkZ) ? '#' : '_', rang::fg::green};
+            }
+        }
+
         Vec3 point = ray.origin + ray.direction * t;
         Vec3 normal = object->getNormal(point);
         
-        // Ambient
-        Vec3 ambient = lightColor * ambientStrength;
-
-        // Diffuse
+        // Diffuse lighting (simplified)
         double diff = std::max(normal.dot(lightDir), 0.0);
-        Vec3 diffuse = lightColor * diff;
 
-        // Specular
-        Vec3 viewDir = (ray.origin - point).normalize();
-        Vec3 reflectDir = (lightDir - normal * 2.0 * lightDir.dot(normal)).normalize();
-        double spec = std::pow(std::max(viewDir.dot(reflectDir), 0.0), specularExponent);
-        Vec3 specular = lightColor * specularStrength * spec;
+        // Choose ASCII character based on lighting intensity
+        const char shades[] = " .:-=+*#%@";
+        int shadeIndex = static_cast<int>(diff * 9);
+        char shadeChar = shades[shadeIndex];
 
-        // Combine lighting
-        Vec3 lighting = ambient + diffuse + specular;
-        
-        // Apply lighting to object color
-        Vec3 objColor = object->getColorVec3();
-        Vec3 result = objColor * lighting;
+        // Get object color
+        rang::fg objectColor = object->getColor();
 
-        // Convert to rang::fg
-        int r = std::min(static_cast<int>(result.x * 255), 255);
-        int g = std::min(static_cast<int>(result.y * 255), 255);
-        int b = std::min(static_cast<int>(result.z * 255), 255);
-
-        if (r > 128 && g > 128 && b > 128) return rang::fg::gray;
-        if (r > 128 && g > 128) return rang::fg::yellow;
-        if (r > 128 && b > 128) return rang::fg::magenta;
-        if (g > 128 && b > 128) return rang::fg::cyan;
-        if (r > 128) return rang::fg::red;
-        if (g > 128) return rang::fg::green;
-        if (b > 128) return rang::fg::blue;
-        return rang::fg::reset;
+        return {shadeChar, objectColor};
     }
 };
