@@ -1,14 +1,14 @@
 #pragma once
 #include "shape.hpp"
-#include <cmath>
+#include "vec3.hpp"
 #include <rang.hpp>
 
 struct Sphere : Shape {
     Vec3 center;
     double radius;
-    rang::fg color;
+    rang::fg color;  // Use rang::fg for colors
 
-    Sphere(const Vec3& center, double radius, rang::fg color) 
+    Sphere(const Vec3& center, double radius, rang::fg color)
         : center(center), radius(radius), color(color) {}
 
     bool intersect(const Ray& ray, double& t) const override {
@@ -25,7 +25,9 @@ struct Sphere : Shape {
         return (point - center).normalize();
     }
 
+    // Return rang::fg for color
     rang::fg getColor() const override {
         return color;
     }
 };
+
